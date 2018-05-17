@@ -19,7 +19,7 @@ The current version of Storage Schema is documented [here](docs/storage-schema.m
 ### Running Heapster on Kubernetes
 
 Heapster can run on a Kubernetes cluster using a number of backends.  Some common choices:
-- [InfluxDB](docs/influxdb.md)
+- [Metricly](docs/metricly.md)
 - [Stackdriver Monitoring and Logging](docs/google.md) for Google Cloud Platform
 - [Other backends](docs/)
 
