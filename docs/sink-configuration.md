@@ -380,7 +380,7 @@ Options can be set in query string, like this:
 
 For example,
 
-    --sink="metricly:https://api.app.metricly.com/ingest?apiKey=<uuid>"
+    --sink="metricly:https://api.app.metricly.com/ingest/kubernetes?apiKey=<uuid>"
 
 ## Using multiple sinks
 
