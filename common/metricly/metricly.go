@@ -46,7 +46,7 @@ type MetriclyConfig struct {
 
 func Config(uri *url.URL) (MetriclyConfig, error) {
 	config := MetriclyConfig{
-		ApiURL: "https://api.app.metricly.com/ingest",
+		ApiURL: "https://api.app.metricly.com/ingest/kubernetes",
 		ApiKey: "",
 	}
 
