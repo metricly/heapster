@@ -246,35 +246,35 @@ func TestLinkElements(t *testing.T) {
 
 func createElements() []metricly_core.Element {
 	//cluster
-	cluster := metricly_core.NewElement("cluster", "cluster", "cluster", "")
+	cluster := metricly_core.NewElement("cluster", "cluster", "Kubernetes Cluster", "")
 	cluster.AddTag("type", "cluster")
 
 	//pod_container
-	podContainer := metricly_core.NewElement("namespace:kube-system/pod:heapster-ww9r6/container:heapster", "namespace:kube-system/pod:heapster-ww9r6/container:heapster", "pod_container", "")
+	podContainer := metricly_core.NewElement("namespace:kube-system/pod:heapster-ww9r6/container:heapster", "namespace:kube-system/pod:heapster-ww9r6/container:heapster", "Kubernetes Pod Container", "")
 	podContainer.AddTag("type", "pod_container")
 	podContainer.AddTag("pod_id", "761fc05e-008c-11e8-911d-080027b171ba")
 	podContainer.AddTag("namespace_id", "efc44650-ffbd-11e7-a0bf-080027b171ba")
 	podContainer.AddTag("host_id", "minikube")
 
 	//pod
-	pod := metricly_core.NewElement("namespace:kube-system/pod:heapster-ww9r6", "namespace:kube-system/pod:heapster-ww9r", "pod", "")
+	pod := metricly_core.NewElement("namespace:kube-system/pod:heapster-ww9r6", "namespace:kube-system/pod:heapster-ww9r", "Kubernetes Pod", "")
 	pod.AddTag("type", "pod")
 	pod.AddTag("pod_id", "761fc05e-008c-11e8-911d-080027b171ba")
 	pod.AddTag("host_id", "minikube")
 	pod.AddTag("namespace_id", "efc44650-ffbd-11e7-a0bf-080027b171ba")
 
 	//node
-	node := metricly_core.NewElement("node:minikube", "node:minikube", "node", "")
+	node := metricly_core.NewElement("node:minikube", "node:minikube", "Kubernetes Node", "")
 	node.AddTag("type", "node")
 	node.AddTag("host_id", "minikube")
 
 	//namespace
-	ns := metricly_core.NewElement("namespace:kube-system", "namespace:kube-system", "ns", "")
+	ns := metricly_core.NewElement("namespace:kube-system", "namespace:kube-system", "Kubernetes Namespace", "")
 	ns.AddTag("type", "ns")
 	ns.AddTag("namespace_id", "efc44650-ffbd-11e7-a0bf-080027b171ba")
 
 	//sys_container
-	sysContainer := metricly_core.NewElement("node:minikube/container:init.scope", "node:minikube/container:init.scope", "sys_container", "")
+	sysContainer := metricly_core.NewElement("node:minikube/container:init.scope", "node:minikube/container:init.scope", "Kubernetes Sys Container", "")
 	sysContainer.AddTag("type", "sys_container")
 	sysContainer.AddTag("host_id", "minikube")
 

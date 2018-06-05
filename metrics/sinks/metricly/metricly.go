@@ -129,15 +129,15 @@ func LinkElements(elements []metricly_core.Element) {
 	var elementsById = make(map[string]*metricly_core.Element)
 	for idx := range elements {
 		switch e := elements[idx]; e.Type {
-		case "pod":
+		case "Kubernetes Pod":
 			if id, ok := elements[idx].Tag("pod_id"); ok {
 				elementsById[id.Value] = &e
 			}
-		case "node":
+		case "Kubernetes Node":
 			if id, ok := elements[idx].Tag("host_id"); ok {
 				elementsById[id.Value] = &e
 			}
-		case "ns":
+		case "Kubernetes Namespace":
 			if id, ok := elements[idx].Tag("namespace_id"); ok {
 				elementsById[id.Value] = &e
 			}
@@ -146,7 +146,7 @@ func LinkElements(elements []metricly_core.Element) {
 
 	for idx := range elements {
 		switch e := elements[idx]; e.Type {
-		case "pod_container":
+		case "Kubernetes Pod Container":
 			if podId, ok := e.Tag("pod_id"); ok {
 				if pod, ok := elementsById[podId.Value]; ok {
 					pod.AddRelation(e.Id)
@@ -162,7 +162,7 @@ func LinkElements(elements []metricly_core.Element) {
 					ns.AddRelation(e.Id)
 				}
 			}
-		case "pod":
+		case "Kubernetes Pod":
 			if hostId, ok := elements[idx].Tag("host_id"); ok {
 				if host, ok := elementsById[hostId.Value]; ok {
 					host.AddRelation(e.Id)
@@ -173,7 +173,7 @@ func LinkElements(elements []metricly_core.Element) {
 					ns.AddRelation(e.Id)
 				}
 			}
-		case "sys_container":
+		case "Kubernetes Sys Container":
 			if hostId, ok := elements[idx].Tag("host_id"); ok {
 				if host, ok := elementsById[hostId.Value]; ok {
 					host.AddRelation(e.Id)
