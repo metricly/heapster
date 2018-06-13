@@ -32,6 +32,7 @@ const (
 type MetriclyMetricsSink struct {
 	client api.Client
 	config metricly.MetriclyConfig
+	cache  *MetricCache
 }
 
 func (sink *MetriclyMetricsSink) Name() string {
@@ -47,7 +48,7 @@ type chunk struct {
 
 func (sink *MetriclyMetricsSink) ExportData(batch *core.DataBatch) {
 	glog.Info("Start exporting data batch to Metricly ...")
-	elements := DataBatchToElements(sink.config, batch)
+	elements := DataBatchToElements(sink.config, sink.cache, batch)
 	elementsPayloadSize := defaultElementsPayloadSize
 	if sink.config.ElementBatchSize > 0 {
 		elementsPayloadSize = sink.config.ElementBatchSize
@@ -82,10 +83,10 @@ func (sink *MetriclyMetricsSink) ExportData(batch *core.DataBatch) {
 func NewMetriclySink(uri *url.URL) (core.DataSink, error) {
 	config, _ := metricly.Config(uri)
 	glog.Info("Create Metricly sink using config: ", config)
-	return &MetriclyMetricsSink{client: api.NewClient(config.ApiURL, config.ApiKey), config: config}, nil
+	return &MetriclyMetricsSink{client: api.NewClient(config.ApiURL, config.ApiKey), config: config, cache: NewMetricCache(300)}, nil
 }
 
-func DataBatchToElements(config metricly.MetriclyConfig, batch *core.DataBatch) []metricly_core.Element {
+func DataBatchToElements(config metricly.MetriclyConfig, cache *MetricCache, batch *core.DataBatch) []metricly_core.Element {
 	ts := batch.Timestamp.Unix() * 1000
 	var elements []metricly_core.Element
 	for key, ms := range batch.MetricSets {
@@ -109,7 +110,16 @@ func DataBatchToElements(config metricly.MetriclyConfig, batch *core.DataBatch) 
 		// metrics
 		for mname, mvalue := range ms.MetricValues {
 			if sample, err := metricly_core.NewSample(sanitizeMetricId(mname), ts, mvalue.GetValue()); err == nil {
-				element.AddSample(sample)
+				if cache.ContainsMetric(sample.MetricId()) {
+					if lastSample, found := cache.getSample(element.Id, sample.MetricId()); found {
+						if delta, err := metricly_core.NewSample(sample.MetricId(), ts, sample.Val()-lastSample.val); err == nil {
+							element.AddSample(delta)
+						}
+					}
+					cache.addSample(element.Id, sample)
+				} else {
+					element.AddSample(sample)
+				}
 			}
 		}
 		// labeled metrics
@@ -122,6 +132,7 @@ func DataBatchToElements(config metricly.MetriclyConfig, batch *core.DataBatch) 
 		elements = append(elements, element)
 	}
 	LinkElements(elements)
+	CreateComputedMetrics(ts, elements)
 	return elements
 }
 
@@ -180,6 +191,13 @@ func LinkElements(elements []metricly_core.Element) {
 				}
 			}
 		}
+	}
+}
+
+//CreateComputedMetrics creates new computed metrics/samples based on current collected metrics
+func CreateComputedMetrics(timestamp int64, elements []metricly_core.Element) {
+	for _, e := range elements {
+		CreateComputedMetric(timestamp, &e)
 	}
 }
 

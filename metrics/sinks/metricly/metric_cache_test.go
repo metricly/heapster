@@ -20,6 +20,29 @@ import (
 	"github.com/metricly/go-client/model/core"
 )
 
+func TestContainsMetric(t *testing.T) {
+	//given
+	mc := NewMetricCache(60)
+	//when
+	found := mc.ContainsMetric("cpu.usage")
+	//then
+	if !found {
+		t.Errorf("'cpu.usage' should exist as a counter metric")
+	}
+}
+
+func TestNotContainsMetric(t *testing.T) {
+	//given
+	mc := NewMetricCache(60)
+	//when
+	found := mc.ContainsMetric("cpu.request")
+	//then
+	if found {
+		t.Errorf("'cpu.request' should not exist as a counter metric")
+	}
+
+}
+
 func TestAddSample(t *testing.T) {
 	//given
 	mc := NewMetricCache(60)

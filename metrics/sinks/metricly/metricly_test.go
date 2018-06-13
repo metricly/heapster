@@ -56,7 +56,7 @@ func TestConvertDataBatchToElements(t *testing.T) {
 	//given
 	batch := createDataBatch()
 	//when
-	elements := DataBatchToElements(metricly.MetriclyConfig{}, batch)
+	elements := DataBatchToElements(metricly.MetriclyConfig{}, NewMetricCache(300), batch)
 	//then
 	if len(elements) != 1 {
 		t.Errorf("There should be 1 element in elements, but actual =  %d", len(elements))
@@ -108,7 +108,7 @@ func createDataBatch() *core.DataBatch {
 			"type":           "pod",
 		},
 		MetricValues: map[string]core.MetricValue{
-			"cpu/usage": {
+			"cpu/usage_rate": {
 				MetricType: core.MetricGauge,
 				ValueType:  core.ValueInt64,
 				IntValue:   9248344,

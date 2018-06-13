@@ -66,6 +66,11 @@ func (mc *MetricCache) Size() int {
 	return size
 }
 
+func (mc *MetricCache) ContainsMetric(metricId string) bool {
+	_, found := mc.counters[metricId]
+	return found
+}
+
 func (mc *MetricCache) addSample(elementId string, s core.Sample) {
 	if _, ok := mc.counters[s.MetricId()]; ok {
 		mc.lock.Lock()
