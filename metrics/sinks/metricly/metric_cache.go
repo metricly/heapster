@@ -38,7 +38,7 @@ type MetricCache struct {
 	lock     sync.Mutex
 }
 
-//NewMetricCache create a new MetricCache
+//NewMetricCache creates a new MetricCache
 func NewMetricCache(ttl int) (mc *MetricCache) {
 	mc = &MetricCache{cache: make(map[metricKey]sample),
 		counters: map[string]struct{}{
