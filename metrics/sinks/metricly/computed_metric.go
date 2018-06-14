@@ -91,5 +91,8 @@ func calculateMemUsagePercent(limit, request, usage float64) float64 {
 	if request != 0.0 && request != -1.0 && usage != -1.0 {
 		return 100.0 * (usage / request)
 	}
+	if usage == 0.0 {
+		return 0.0
+	}
 	return -1.0
 }
