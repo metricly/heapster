@@ -14,6 +14,7 @@
 package metricly
 
 import (
+	"github.com/golang/glog"
 	"github.com/metricly/go-client/model/core"
 )
 
@@ -41,6 +42,7 @@ func createCpuUsageComputedMetric(ts int64, e *core.Element) {
 		}
 	}
 	usagePercent := calculateCpuUsagePercent(limit, request, usageRate, usage)
+	glog.V(4).Infof("calculated cpu usage percent: %f for element: %s using limit: %f, request: %f, usageRate: %f, usage: %f", usagePercent, e.Id, limit, request, usageRate, usage)
 	if usagePercent != -1.0 {
 		sample, _ := core.NewSample("cpu.usage.percent", ts, usagePercent)
 		e.AddSample(sample)
@@ -62,6 +64,7 @@ func createMemUsageComputedMetric(ts int64, e *core.Element) {
 		}
 	}
 	usagePercent := calculateMemUsagePercent(limit, request, usage)
+	glog.V(4).Infof("calculated memory usage percent: %f for element: %s using limit: %f, request: %f, usage: %f", usagePercent, e.Id, limit, request, usage)
 	if usagePercent != -1.0 {
 		sample, _ := core.NewSample("memory.usage.percent", ts, usagePercent)
 		e.AddSample(sample)
