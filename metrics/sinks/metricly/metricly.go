@@ -105,6 +105,9 @@ func DataBatchToElements(config metricly.MetriclyConfig, cache *MetricCache, bat
 		for lname, lvalue := range ms.Labels {
 			if lname == "labels" {
 				for _, l := range strings.Split(lvalue, ",") {
+					if strings.TrimSpace(l) == "" {
+						continue
+					}
 					kv := strings.SplitN(l, ":", 2)
 					element.AddTag(kv[0], kv[1])
 				}
