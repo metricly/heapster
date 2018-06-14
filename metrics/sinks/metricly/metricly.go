@@ -25,8 +25,9 @@ import (
 )
 
 const (
-	defaultElementsPayloadSize = 20
-	elementTypePrefix          = "Kubernetes "
+	defaultElementsPayloadSize   = 20
+	defaultMetricCacheTTLSeconds = 300
+	elementTypePrefix            = "Kubernetes "
 )
 
 type MetriclyMetricsSink struct {
@@ -83,7 +84,11 @@ func (sink *MetriclyMetricsSink) ExportData(batch *core.DataBatch) {
 func NewMetriclySink(uri *url.URL) (core.DataSink, error) {
 	config, _ := metricly.Config(uri)
 	glog.Info("Create Metricly sink using config: ", config)
-	return &MetriclyMetricsSink{client: api.NewClient(config.ApiURL, config.ApiKey), config: config, cache: NewMetricCache(300)}, nil
+	mcttl := defaultMetricCacheTTLSeconds
+	if config.MetricCacheTTLSeconds > 0 {
+		mcttl = config.MetricCacheTTLSeconds
+	}
+	return &MetriclyMetricsSink{client: api.NewClient(config.ApiURL, config.ApiKey), config: config, cache: NewMetricCache(mcttl)}, nil
 }
 
 func DataBatchToElements(config metricly.MetriclyConfig, cache *MetricCache, batch *core.DataBatch) []metricly_core.Element {

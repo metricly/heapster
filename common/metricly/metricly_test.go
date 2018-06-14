@@ -20,7 +20,7 @@ import (
 
 func TestParsingMetriclyConfig(t *testing.T) {
 	//given
-	metriclyURI := "https://api.app.metricly.com/ingest/kubernetes?apiKey=datasourceApiKey&elementBatchSize=60&filter=label:{type:pod.*}&filter=!label:{type:pod_container}"
+	metriclyURI := "https://api.app.metricly.com/ingest/kubernetes?apiKey=datasourceApiKey&elementBatchSize=60&filter=label:{type:pod.*}&filter=!label:{type:pod_container}&metricCacheTTLSeconds=120"
 	uri, err := url.Parse(metriclyURI)
 	if err != nil {
 		t.Fatalf("Error when parsing Metricly URL: %s", err.Error())
@@ -53,5 +53,8 @@ func TestParsingMetriclyConfig(t *testing.T) {
 	exFilter := config.ExclusionFilters[0]
 	if exFilter.Type != "label" || exFilter.Name != "type" || exFilter.Regex.String() != "pod_container" {
 		t.Fatalf("The exclusion filter has the wrong value")
+	}
+	if config.MetricCacheTTLSeconds != 120 {
+		t.Fatalf("The Metric Cache TTL is wrong, actual=%d, expected=%d", config.MetricCacheTTLSeconds, 120)
 	}
 }

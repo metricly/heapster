@@ -42,10 +42,11 @@ type MetricCache struct {
 func NewMetricCache(ttl int) (mc *MetricCache) {
 	mc = &MetricCache{cache: make(map[metricKey]sample),
 		counters: map[string]struct{}{
-			"cpu.usage": struct{}{},
+			"cpu.usage": {},
 		}}
 	go func() {
-		for now := range time.Tick(time.Second) {
+		duration := time.Duration(ttl) * time.Second
+		for now := range time.Tick(duration) {
 			mc.lock.Lock()
 			for k, v := range mc.cache {
 				if now.Unix()*1000-v.timestamp > int64(ttl*1000) {
