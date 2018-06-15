@@ -20,7 +20,7 @@ spec:
       serviceAccountName: heapster
       containers:
       - name: heapster
-        image: index.docker.io/metricly/heapster:0.0.6
+        image: index.docker.io/metricly/heapster:0.0.7
         imagePullPolicy: IfNotPresent
         command:
         - /heapster
