@@ -25,6 +25,7 @@ import (
 )
 
 const (
+	infraContainerName           = "POD"
 	defaultElementsPayloadSize   = 20
 	defaultMetricCacheTTLSeconds = 300
 	elementTypePrefix            = "Kubernetes "
@@ -97,6 +98,10 @@ func DataBatchToElements(config metricly.MetriclyConfig, cache *MetricCache, bat
 	for key, ms := range batch.MetricSets {
 		if !filter(config.InclusionFilters, config.ExclusionFilters, ms) {
 			glog.V(1).Info("metric set is dropped due to filtering, key: ", key)
+			continue
+		}
+		if strings.HasSuffix(key, infraContainerName) {
+			glog.V(1).Info("metric set is dropped due to it is a infra/pause container: " + key)
 			continue
 		}
 		etype := ms.Labels["type"]
