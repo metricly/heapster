@@ -72,14 +72,14 @@ func createMemUsageComputedMetric(ts int64, e *core.Element) {
 }
 
 func calculateCpuUsagePercent(limit, request, usageRate, usage float64) float64 {
-	if limit != 0.0 && limit != -1.0 && usageRate != 1.0 {
-		return 100 * (usageRate / limit)
+	if limit != 0.0 && limit != -1.0 && usageRate != -1.0 {
+		return 100.0 * (usageRate / limit)
 	}
 	if request != 0.0 && request != -1.0 && usageRate != -1.0 {
-		return 100 * (usageRate / request)
+		return 100.0 * (usageRate / request)
 	}
 	if usage != -1.0 {
-		return 100 * usage / (60 * 1000000000)
+		return 100.0 * usage / (60 * 1000000000)
 	}
 	return -1.0
 }
