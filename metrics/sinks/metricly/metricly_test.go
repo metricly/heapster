@@ -56,7 +56,7 @@ func TestConvertDataBatchToElements(t *testing.T) {
 	//given
 	batch := createDataBatch()
 	//when
-	elements := DataBatchToElements(metricly.MetriclyConfig{}, NewMetricCache(300), batch)
+	elements := DataBatchToElements("", metricly.MetriclyConfig{}, NewMetricCache(300), batch)
 	//then
 	if len(elements) != 1 {
 		t.Errorf("There should be 1 element in elements, but actual =  %d", len(elements))

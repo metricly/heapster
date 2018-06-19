@@ -29,12 +29,14 @@ const (
 	defaultElementsPayloadSize   = 20
 	defaultMetricCacheTTLSeconds = 300
 	elementTypePrefix            = "Kubernetes "
+	defaultClusterName           = "k8s-cluster"
 )
 
 type MetriclyMetricsSink struct {
-	client api.Client
-	config metricly.MetriclyConfig
-	cache  *MetricCache
+	client  api.Client
+	config  metricly.MetriclyConfig
+	cache   *MetricCache
+	cluster string
 }
 
 func (sink *MetriclyMetricsSink) Name() string {
@@ -50,7 +52,7 @@ type chunk struct {
 
 func (sink *MetriclyMetricsSink) ExportData(batch *core.DataBatch) {
 	glog.Info("Start exporting data batch to Metricly ...")
-	elements := DataBatchToElements(sink.config, sink.cache, batch)
+	elements := DataBatchToElements(sink.cluster+"/", sink.config, sink.cache, batch)
 	elementsPayloadSize := defaultElementsPayloadSize
 	if sink.config.ElementBatchSize > 0 {
 		elementsPayloadSize = sink.config.ElementBatchSize
@@ -89,10 +91,14 @@ func NewMetriclySink(uri *url.URL) (core.DataSink, error) {
 	if config.MetricCacheTTLSeconds > 0 {
 		mcttl = config.MetricCacheTTLSeconds
 	}
-	return &MetriclyMetricsSink{client: api.NewClient(config.ApiURL, config.ApiKey), config: config, cache: NewMetricCache(mcttl)}, nil
+	clusterName := defaultClusterName
+	if len(config.ClusterName) > 0 {
+		clusterName = config.ClusterName
+	}
+	return &MetriclyMetricsSink{client: api.NewClient(config.ApiURL, config.ApiKey), config: config, cache: NewMetricCache(mcttl), cluster: clusterName}, nil
 }
 
-func DataBatchToElements(config metricly.MetriclyConfig, cache *MetricCache, batch *core.DataBatch) []metricly_core.Element {
+func DataBatchToElements(cluster string, config metricly.MetriclyConfig, cache *MetricCache, batch *core.DataBatch) []metricly_core.Element {
 	ts := batch.Timestamp.Unix() * 1000
 	var elements []metricly_core.Element
 	for key, ms := range batch.MetricSets {
@@ -105,7 +111,7 @@ func DataBatchToElements(config metricly.MetriclyConfig, cache *MetricCache, bat
 			continue
 		}
 		etype := ms.Labels["type"]
-		element := metricly_core.NewElement(key, shortenName(key), prettyElementType(etype), "")
+		element := metricly_core.NewElement(cluster+key, cluster+shortenName(key), prettyElementType(etype), "")
 		// metric set labels to element tags
 		for lname, lvalue := range ms.Labels {
 			if lname == "labels" {

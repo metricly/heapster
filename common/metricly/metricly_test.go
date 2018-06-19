@@ -20,7 +20,7 @@ import (
 
 func TestParsingMetriclyConfig(t *testing.T) {
 	//given
-	metriclyURI := "https://api.app.metricly.com/ingest/kubernetes?apiKey=datasourceApiKey&elementBatchSize=60&filter=label:{type:pod.*}&filter=!label:{type:pod_container}&metricCacheTTLSeconds=120"
+	metriclyURI := "https://api.app.metricly.com/ingest/kubernetes?cluster=qa&apiKey=datasourceApiKey&elementBatchSize=60&filter=label:{type:pod.*}&filter=!label:{type:pod_container}&metricCacheTTLSeconds=120"
 	uri, err := url.Parse(metriclyURI)
 	if err != nil {
 		t.Fatalf("Error when parsing Metricly URL: %s", err.Error())
@@ -36,6 +36,9 @@ func TestParsingMetriclyConfig(t *testing.T) {
 	}
 	if config.ApiKey != "datasourceApiKey" {
 		t.Fatalf("The Api Key is wrong, actual=%s, expected=%s", config.ApiKey, "datasourceApiKey")
+	}
+	if config.ClusterName != "qa" {
+		t.Fatalf("The cluster name is wrong, actual=%s, expected=%s", config.ClusterName, "qa")
 	}
 	if config.ElementBatchSize != 60 {
 		t.Fatalf("The Element Batch Size is wrong, actual=%d, expected=%d", config.ElementBatchSize, 60)

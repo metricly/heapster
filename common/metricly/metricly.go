@@ -39,6 +39,7 @@ type Filter struct {
 type MetriclyConfig struct {
 	ApiURL                string
 	ApiKey                string
+	ClusterName           string
 	ElementBatchSize      int
 	InclusionFilters      []Filter
 	ExclusionFilters      []Filter
@@ -88,6 +89,9 @@ func Config(uri *url.URL) (MetriclyConfig, error) {
 		if mcttl, err := strconv.Atoi(opts["metricCacheTTLSeconds"][0]); mcttl > 0 && err == nil {
 			config.MetricCacheTTLSeconds = mcttl
 		}
+	}
+	if len(opts["cluster"]) > 0 {
+		config.ClusterName = opts["cluster"][0]
 	}
 	return config, nil
 }
