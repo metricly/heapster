@@ -102,16 +102,10 @@ func (this *kubeletMetricsSource) handleSystemContainer(c *cadvisor.ContainerInf
 }
 
 func (this *kubeletMetricsSource) handleKubernetesContainer(cName, ns, podName string, c *cadvisor.ContainerInfo, cMetrics *MetricSet) string {
-	var metricSetKey string
-	if cName == infraContainerName {
-		metricSetKey = PodKey(ns, podName)
-		cMetrics.Labels[LabelMetricSetType.Key] = MetricSetTypePod
-	} else {
-		metricSetKey = PodContainerKey(ns, podName, cName)
-		cMetrics.Labels[LabelMetricSetType.Key] = MetricSetTypePodContainer
-		cMetrics.Labels[LabelContainerName.Key] = cName
-		cMetrics.Labels[LabelContainerBaseImage.Key] = c.Spec.Image
-	}
+	metricSetKey := PodContainerKey(ns, podName, cName)
+	cMetrics.Labels[LabelMetricSetType.Key] = MetricSetTypePodContainer
+	cMetrics.Labels[LabelContainerName.Key] = cName
+	cMetrics.Labels[LabelContainerBaseImage.Key] = c.Spec.Image
 	cMetrics.Labels[LabelPodId.Key] = c.Spec.Labels[kubernetesPodUID]
 	cMetrics.Labels[LabelPodName.Key] = podName
 	cMetrics.Labels[LabelNamespaceName.Key] = ns
