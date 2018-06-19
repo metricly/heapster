@@ -199,9 +199,6 @@ func TestDecodeMetrics5(t *testing.T) {
 	c1.Spec.Labels[kubernetesContainerLabel] = "POD"
 	c1.Spec.Labels[kubernetesPodNameLabel] = "testnamespace/testPodName"
 	metricSetKey, metricSet := kMS.decodeMetrics(&c1)
-	// We don't treat infra/pause container differently to get pod aggregator to work correctly
-	//assert.Equal(t, metricSetKey, "namespace:testnamespace/pod:testPodName")
-	//assert.Equal(t, metricSet.Labels[core.LabelMetricSetType.Key], core.MetricSetTypePod)
 
 	c1.Spec.Labels[kubernetesContainerLabel] = ""
 	c1.Spec.Labels[kubernetesPodNameLabel] = "testnamespace/testPodName"
