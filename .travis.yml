@@ -11,7 +11,7 @@ go:
   - 1.8
 
 before_install:
-  - go get -d -t github.com/metricly/go-client
+  - go get -d github.com/metricly/go-client
 
 script:
   - make metricly
