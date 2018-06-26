@@ -10,6 +10,9 @@ services:
 go:
   - 1.8
 
+before_install:
+  - go get -t github.com/metricly/go-client
+
 script:
   - make metricly
 
