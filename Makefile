@@ -106,7 +106,7 @@ influxdb:
 grafana:
 	ARCH=$(ARCH) PREFIX=$(PREFIX) make -C grafana build
 
-metricly:
+metricly: test-unit
 	docker build -t $(REPOSITORY)/heapster .
 	docker tag $(REPOSITORY)/heapster $(REPOSITORY)/heapster:$(METRICLY_VERSION)
 
