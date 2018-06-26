@@ -1509,7 +1509,7 @@ func TestGetLabels(t *testing.T) {
 		u := &url.URL{RawQuery: queryParams.Encode()}
 		req := restful.NewRequest(&http.Request{URL: u})
 		res, err := getLabels(req)
-		if test.outputError && !assert.Error(err, "test %q should have yielded an error", test.test) {
+		if test.outputError && !assert.Error(err, "test "+test.test+" should have yielded an error") {
 			continue
 		} else if !test.outputError && !assert.NoError(err, "test %q should not have yielded an error", test.test) {
 			continue

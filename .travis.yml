@@ -1,9 +1,20 @@
+sudo: required
+
 language: go
 
-go_import_path: k8s.io/heapster
+services:
+  - docker
 
 go:
   - 1.8
 
 script:
-  - make test-unit
+  - make metricly
+
+deploy:
+  provider: script
+  skip_cleanup: true
+  script: make push-metricly
+  on:
+    tags: true
+    repo: metricly/heapster

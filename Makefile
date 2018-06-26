@@ -6,6 +6,8 @@ ARCH?=amd64
 ALL_ARCHITECTURES=amd64 arm arm64 ppc64le s390x
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64,linux/ppc64le,linux/s390x
 GOLANG_VERSION?=1.8
+REPOSITORY?=metricly
+METRICLY_VERSION?=0.0.8
 
 ifndef TEMP_DIR
 TEMP_DIR:=$(shell mktemp -d /tmp/heapster.XXXXXX)
@@ -104,11 +106,20 @@ influxdb:
 grafana:
 	ARCH=$(ARCH) PREFIX=$(PREFIX) make -C grafana build
 
+metricly: test-unit
+	docker build -t $(REPOSITORY)/heapster .
+	docker tag $(REPOSITORY)/heapster $(REPOSITORY)/heapster:$(METRICLY_VERSION)
+
 push-influxdb:
 	PREFIX=$(PREFIX) make -C influxdb push
 
 push-grafana:
 	PREFIX=$(PREFIX) make -C grafana push
+
+push-metricly: metricly
+	docker login -u="$(DOCKER_USERNAME)" -p="$(DOCKER_PASSWORD)"
+	docker push $(REPOSITORY)/heapster:latest
+	docker push $(REPOSITORY)/heapster:$(METRICLY_VERSION)
 
 gcr-login:
 ifeq ($(findstring gcr.io,$(PREFIX)),gcr.io)
