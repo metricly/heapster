@@ -9,4 +9,12 @@ go:
   - 1.8
 
 script:
-  - make push-metricly
+  - make metricly
+
+deploy:
+  provider: script
+  skip_cleanup: true
+  script: make push-metricly
+  on:
+    tags: true
+    repo: metricly/heapster
