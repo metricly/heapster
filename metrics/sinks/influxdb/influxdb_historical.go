@@ -36,8 +36,8 @@ func (sink *influxdbSink) Historical() core.HistoricalSource {
 
 // implementation of HistoricalSource for influxdbSink
 
-// Kube pod and namespace names are limitted to [a-zA-Z0-9-.], while docker also allows
-// underscores, so only allow these those characters.  When Influx actually supports bound
+// Kube pod and namespace names are limited to [a-zA-Z0-9-.], while docker also allows
+// underscores, so only allow these characters.  When Influx actually supports bound
 // parameters, this will be less necessary.
 var nameAllowedChars = regexp.MustCompile("^[a-zA-Z0-9_.-]+$")
 
@@ -519,7 +519,7 @@ func (sink *influxdbSink) GetLabeledAggregation(metricName string, labels map[st
 	return res, nil
 }
 
-// setAggregationValueIfPresent checks to to if the given metric value is present in the list of raw values, and if so,
+// setAggregationValueIfPresent checks if the given metric value is present in the list of raw values, and if so,
 // copies it to the output format
 func setAggregationValueIfPresent(aggName core.AggregationType, rawVal []interface{}, aggregations *core.AggregationValue, indexLookup map[core.AggregationType]int, wasInt map[string]bool) error {
 	if fieldIndex, ok := indexLookup[aggName]; ok {

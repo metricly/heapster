@@ -67,7 +67,8 @@ func (this *RateCalculator) Process(batch *core.DataBatch) (*core.DataBatch, err
 					if itemNew.Name == metricName {
 						metricValNew, foundNew = itemNew.MetricValue, true
 						for _, itemOld := range oldMs.LabeledMetrics {
-							if itemOld.Name == metricName {
+							// Fix negative value on "disk/io_read_bytes_rate" and "disk/io_write_bytes_rate" when multiple disk devices are available
+							if itemOld.Name == metricName && itemOld.Labels[core.LabelResourceID.Key] == itemNew.Labels[core.LabelResourceID.Key] {
 								metricValOld, foundOld = itemOld.MetricValue, true
 								break
 							}
@@ -76,8 +77,8 @@ func (this *RateCalculator) Process(batch *core.DataBatch) (*core.DataBatch, err
 
 					if foundNew && foundOld {
 						if targetMetric.MetricDescriptor.ValueType == core.ValueFloat {
-							newVal := 1e9 * float32(metricValNew.IntValue-metricValOld.IntValue) /
-								float32(newMs.ScrapeTime.UnixNano()-oldMs.ScrapeTime.UnixNano())
+							newVal := 1e9 * float64(metricValNew.IntValue-metricValOld.IntValue) /
+								float64(newMs.ScrapeTime.UnixNano()-oldMs.ScrapeTime.UnixNano())
 
 							newMs.LabeledMetrics = append(newMs.LabeledMetrics, core.LabeledMetric{
 								Name:   targetMetric.MetricDescriptor.Name,
@@ -109,8 +110,8 @@ func (this *RateCalculator) Process(batch *core.DataBatch) (*core.DataBatch, err
 					}
 
 				} else if foundNew && foundOld && targetMetric.MetricDescriptor.ValueType == core.ValueFloat {
-					newVal := 1e9 * float32(metricValNew.IntValue-metricValOld.IntValue) /
-						float32(newMs.ScrapeTime.UnixNano()-oldMs.ScrapeTime.UnixNano())
+					newVal := 1e9 * float64(metricValNew.IntValue-metricValOld.IntValue) /
+						float64(newMs.ScrapeTime.UnixNano()-oldMs.ScrapeTime.UnixNano())
 
 					newMs.MetricValues[targetMetric.MetricDescriptor.Name] = core.MetricValue{
 						ValueType:  core.ValueFloat,
