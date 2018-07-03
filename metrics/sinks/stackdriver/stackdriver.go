@@ -539,6 +539,13 @@ func (sink *StackdriverSink) LegacyTranslateMetric(timestamp time.Time, labels m
 			"memory_type": "evictable",
 		}
 		return ts
+	case "nvidia.com/gpu/request":
+		point := sink.intPoint(timestamp, timestamp, value.IntValue)
+		ts := legacyCreateTimeSeries(resourceLabels, legacyAcceleratorRequestMD, point)
+		ts.Metric.Labels = map[string]string{
+			"resource_name": "nvidia.com/gpu",
+		}
+		return ts
 	case core.MetricMemoryWorkingSet.MetricDescriptor.Name:
 		point := sink.intPoint(timestamp, timestamp, value.IntValue)
 		ts := legacyCreateTimeSeries(resourceLabels, legacyMemoryBytesUsedMD, point)
@@ -574,6 +581,37 @@ func (sink *StackdriverSink) TranslateLabeledMetric(timestamp time.Time, labels 
 			ts := createTimeSeries("k8s_pod", podLabels, volumeTotalBytesMD, point)
 			ts.Metric.Labels = map[string]string{
 				core.LabelVolumeName.Key: strings.TrimPrefix(metric.Labels[core.LabelResourceID.Key], "Volume:"),
+			}
+			return ts
+		}
+	case core.MetricSetTypePodContainer:
+		containerLabels := sink.getContainerResourceLabels(labels)
+		switch metric.Name {
+		case core.MetricAcceleratorMemoryTotal.MetricDescriptor.Name:
+			point := sink.intPoint(timestamp, timestamp, metric.IntValue)
+			ts := createTimeSeries("k8s_container", containerLabels, acceleratorMemoryTotalMD, point)
+			ts.Metric.Labels = map[string]string{
+				core.LabelAcceleratorMake.Key:  metric.Labels[core.LabelAcceleratorMake.Key],
+				core.LabelAcceleratorModel.Key: metric.Labels[core.LabelAcceleratorModel.Key],
+				core.LabelAcceleratorID.Key:    metric.Labels[core.LabelAcceleratorID.Key],
+			}
+			return ts
+		case core.MetricAcceleratorMemoryUsed.MetricDescriptor.Name:
+			point := sink.intPoint(timestamp, timestamp, metric.IntValue)
+			ts := createTimeSeries("k8s_container", containerLabels, acceleratorMemoryUsedMD, point)
+			ts.Metric.Labels = map[string]string{
+				core.LabelAcceleratorMake.Key:  metric.Labels[core.LabelAcceleratorMake.Key],
+				core.LabelAcceleratorModel.Key: metric.Labels[core.LabelAcceleratorModel.Key],
+				core.LabelAcceleratorID.Key:    metric.Labels[core.LabelAcceleratorID.Key],
+			}
+			return ts
+		case core.MetricAcceleratorDutyCycle.MetricDescriptor.Name:
+			point := sink.intPoint(timestamp, timestamp, metric.IntValue)
+			ts := createTimeSeries("k8s_container", containerLabels, acceleratorDutyCycleMD, point)
+			ts.Metric.Labels = map[string]string{
+				core.LabelAcceleratorMake.Key:  metric.Labels[core.LabelAcceleratorMake.Key],
+				core.LabelAcceleratorModel.Key: metric.Labels[core.LabelAcceleratorModel.Key],
+				core.LabelAcceleratorID.Key:    metric.Labels[core.LabelAcceleratorID.Key],
 			}
 			return ts
 		}
@@ -613,6 +651,13 @@ func (sink *StackdriverSink) TranslateMetric(timestamp time.Time, labels map[str
 				"memory_type": "evictable",
 			}
 			return ts
+		case "nvidia.com/gpu/request":
+			point := sink.intPoint(timestamp, timestamp, value.IntValue)
+			ts := createTimeSeries("k8s_container", containerLabels, acceleratorRequestedMD, point)
+			ts.Metric.Labels = map[string]string{
+				"resource_name": "nvidia.com/gpu",
+			}
+			return ts
 		case core.MetricMemoryWorkingSet.MetricDescriptor.Name:
 			point := sink.intPoint(timestamp, timestamp, value.IntValue)
 			ts := createTimeSeries("k8s_container", containerLabels, memoryContainerUsedBytesMD, point)
@@ -623,6 +668,16 @@ func (sink *StackdriverSink) TranslateMetric(timestamp time.Time, labels map[str
 		case core.MetricMemoryRequest.MetricDescriptor.Name:
 			point := sink.intPoint(timestamp, timestamp, value.IntValue)
 			return createTimeSeries("k8s_container", containerLabels, memoryRequestedBytesMD, point)
+		case core.MetricEphemeralStorageLimit.MetricDescriptor.Name:
+			point := sink.intPoint(timestamp, timestamp, value.IntValue)
+			return createTimeSeries("k8s_container", containerLabels, ephemeralstorageLimitBytesMD, point)
+		case core.MetricEphemeralStorageRequest.MetricDescriptor.Name:
+			point := sink.intPoint(timestamp, timestamp, value.IntValue)
+			return createTimeSeries("k8s_container", containerLabels, ephemeralstorageRequestedBytesMD, point)
+		case core.MetricEphemeralStorageUsage.MetricDescriptor.Name:
+			point := sink.intPoint(timestamp, timestamp, value.IntValue)
+			return createTimeSeries("k8s_container", containerLabels, ephemeralstorageContainerUsedBytesMD, point)
+
 		case core.MetricRestartCount.MetricDescriptor.Name:
 			if entityCreateTime.IsZero() {
 				glog.V(2).Infof("Skipping restart_count metric for container %s because entity create time is zero", core.PodContainerKey(containerLabels["namespace_name"], containerLabels["pod_name"], containerLabels["container_name"]))
@@ -645,19 +700,19 @@ func (sink *StackdriverSink) TranslateMetric(timestamp time.Time, labels map[str
 		nodeLabels := sink.getNodeResourceLabels(labels)
 		switch name {
 		case core.MetricNodeCpuCapacity.MetricDescriptor.Name:
-			point := sink.doublePoint(timestamp, timestamp, float64(value.FloatValue))
+			point := sink.doublePoint(timestamp, timestamp, float64(value.FloatValue)/1000)
 			return createTimeSeries("k8s_node", nodeLabels, cpuTotalCoresMD, point)
 		case core.MetricNodeCpuAllocatable.MetricDescriptor.Name:
-			point := sink.doublePoint(timestamp, timestamp, float64(value.FloatValue))
+			point := sink.doublePoint(timestamp, timestamp, float64(value.FloatValue)/1000)
 			return createTimeSeries("k8s_node", nodeLabels, cpuAllocatableCoresMD, point)
 		case core.MetricCpuUsage.MetricDescriptor.Name:
 			point := sink.doublePoint(timestamp, collectionStartTime, float64(value.IntValue)/float64(time.Second/time.Nanosecond))
 			return createTimeSeries("k8s_node", nodeLabels, cpuNodeCoreUsageTimeMD, point)
 		case core.MetricNodeMemoryCapacity.MetricDescriptor.Name:
-			point := sink.intPoint(timestamp, timestamp, value.IntValue)
+			point := sink.intPoint(timestamp, timestamp, int64(value.FloatValue))
 			return createTimeSeries("k8s_node", nodeLabels, memoryTotalBytesMD, point)
 		case core.MetricNodeMemoryAllocatable.MetricDescriptor.Name:
-			point := sink.intPoint(timestamp, timestamp, value.IntValue)
+			point := sink.intPoint(timestamp, timestamp, int64(value.FloatValue))
 			return createTimeSeries("k8s_node", nodeLabels, memoryAllocatableBytesMD, point)
 		case "memory/bytes_used":
 			point := sink.intPoint(timestamp, timestamp, value.IntValue)
@@ -679,6 +734,10 @@ func (sink *StackdriverSink) TranslateMetric(timestamp time.Time, labels map[str
 		case core.MetricNetworkTx.MetricDescriptor.Name:
 			point := sink.intPoint(timestamp, collectionStartTime, value.IntValue)
 			return createTimeSeries("k8s_node", nodeLabels, networkNodeSentBytesMD, point)
+		case core.MetricNodeEphemeralStorageCapacity.MetricDescriptor.Name:
+			point := sink.intPoint(timestamp, timestamp, value.IntValue)
+			return createTimeSeries("k8s_node", nodeLabels, ephemeralstorageTotalBytesMD, point)
+
 		}
 	case core.MetricSetTypeSystemContainer:
 		nodeLabels := sink.getNodeResourceLabels(labels)

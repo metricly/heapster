@@ -21,8 +21,8 @@ import (
 
 	"k8s.io/heapster/metrics/util"
 
+	kube_api "k8s.io/api/core/v1"
 	v1listers "k8s.io/client-go/listers/core/v1"
-	kube_api "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/heapster/metrics/core"
 )
 
@@ -171,15 +171,42 @@ func (this *PodBasedEnricher) addPodInfo(key string, podMs *core.MetricSet, pod 
 
 func updateContainerResourcesAndLimits(metricSet *core.MetricSet, container kube_api.Container) {
 	requests := container.Resources.Requests
-	if val, found := requests[kube_api.ResourceCPU]; found {
-		metricSet.MetricValues[core.MetricCpuRequest.Name] = intValue(val.MilliValue())
-	} else {
+
+	for key, val := range container.Resources.Requests {
+		metric, found := core.ResourceRequestMetrics[key]
+		// Inserts a metric to core.ResourceRequestMetrics if there is no
+		// existing one for the given resource. The name of this metric is
+		// ResourceName/request where ResourceName is the name of the resource
+		// requested in container resource requests.
+		if !found {
+			metric = core.Metric{
+				MetricDescriptor: core.MetricDescriptor{
+					Name:        string(key) + "/request",
+					Description: string(key) + " resource request. This metric is Kubernetes specific.",
+					Type:        core.MetricGauge,
+					ValueType:   core.ValueInt64,
+					Units:       core.UnitsCount,
+				},
+			}
+			core.ResourceRequestMetrics[key] = metric
+		}
+		if key == kube_api.ResourceCPU {
+			metricSet.MetricValues[metric.Name] = intValue(val.MilliValue())
+		} else {
+			metricSet.MetricValues[metric.Name] = intValue(val.Value())
+		}
+	}
+
+	// For primary resources like cpu and memory, explicitly sets their request resource
+	// metric to zero if they are not requested.
+	if _, found := requests[kube_api.ResourceCPU]; !found {
 		metricSet.MetricValues[core.MetricCpuRequest.Name] = intValue(0)
 	}
-	if val, found := requests[kube_api.ResourceMemory]; found {
-		metricSet.MetricValues[core.MetricMemoryRequest.Name] = intValue(val.Value())
-	} else {
+	if _, found := requests[kube_api.ResourceMemory]; !found {
 		metricSet.MetricValues[core.MetricMemoryRequest.Name] = intValue(0)
+	}
+	if _, found := requests[kube_api.ResourceEphemeralStorage]; !found {
+		metricSet.MetricValues[core.MetricEphemeralStorageRequest.Name] = intValue(0)
 	}
 
 	limits := container.Resources.Limits
@@ -192,6 +219,11 @@ func updateContainerResourcesAndLimits(metricSet *core.MetricSet, container kube
 		metricSet.MetricValues[core.MetricMemoryLimit.Name] = intValue(val.Value())
 	} else {
 		metricSet.MetricValues[core.MetricMemoryLimit.Name] = intValue(0)
+	}
+	if val, found := limits[kube_api.ResourceEphemeralStorage]; found {
+		metricSet.MetricValues[core.MetricEphemeralStorageLimit.Name] = intValue(val.Value())
+	} else {
+		metricSet.MetricValues[core.MetricEphemeralStorageLimit.Name] = intValue(0)
 	}
 }
 
