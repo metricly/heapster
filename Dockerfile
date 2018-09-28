@@ -1,4 +1,4 @@
-# VERSION               0.0.8
+# VERSION               0.0.9
 # DESCRIPTION:    Metricly Heapster Docker Container
 # MAINTAINER Metricly <repos@metricly.com>
 
