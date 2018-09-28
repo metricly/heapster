@@ -1,6 +1,10 @@
 # Metrilcy Heapster Docker Container Release History
 ======================================
 
+## Version 0.0.9
+---------------------------
+- default configuration no longer includes sys_containers
+
 ## Version 0.0.8
 ---------------------------
 - fix a bug on negative computed cpu.usage.percent values
